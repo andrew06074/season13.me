@@ -1,5 +1,4 @@
 from riotwatcher import LolWatcher, ApiError
-from api_key import get_api_key
 from matplotlib import  pyplot as plt
 
 import os
