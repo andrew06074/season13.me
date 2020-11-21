@@ -17,7 +17,10 @@ def get_info():
     #global
     #load api key
     load_dotenv()
-    api_key = os.getenv('api_key')
+    #local key
+    #api_key = os.getenv('api_key')
+    # heroku key
+    api_key = os.environ.get('api_key')
     watcher = LolWatcher(api_key)
     my_region = 'na1'
     #get summoner Id
