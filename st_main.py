@@ -67,7 +67,7 @@ def get_win_loss_ratio_for_write_df(df):
 
 #USER INTERACTION HERE
 #get summoner name
-my_name = st.text_input('Enter your summoner name: ','DoubbleLift')
+my_name = st.text_input('Enter your summoner name: ','Scarra')
 #when submit button is pressed
 if st.button('Submit'):
     with st.spinner("Search ongoing"):
