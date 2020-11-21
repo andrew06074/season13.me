@@ -16,9 +16,9 @@ import matplotlib as mpl
 #load api key
 load_dotenv()
 #local key
-api_key = os.getenv('api_key')
+#api_key = os.getenv('api_key')
 #heroku key
-#api_key = os.environ.get('api_key')
+api_key = os.environ.get('api_key')
 watcher = LolWatcher(api_key)
 #set region to na1
 my_region = 'na1'
