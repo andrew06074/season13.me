@@ -101,6 +101,7 @@ def get_win_loss_ratio_for_write_df(df):
     return df
 
 #USER INTERACTION HERE
+st.write('@hancockdevelop')
 #get summoner name
 st.title('Search for summoner name: ')
 my_name = st.text_input('','Scarra')
