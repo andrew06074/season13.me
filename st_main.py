@@ -1,3 +1,7 @@
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
+
 from riotwatcher import LolWatcher, ApiError
 from matplotlib import  pyplot as plt
 
@@ -11,6 +15,7 @@ import numpy as np
 import matplotlib.ticker as ticker
 import matplotlib as mpl
 
+from PIL import Image
 #load css
 def local_css(file_name):
     with open(file_name) as f:
@@ -22,9 +27,9 @@ local_css("style.css")
 #load api key
 load_dotenv()
 #local key
-api_key = os.getenv('api_key')
+#api_key = os.getenv('api_key')
 #heroku key
-#api_key = os.environ.get('api_key')
+api_key = os.environ.get('api_key')
 watcher = LolWatcher(api_key)
 #set region to na1
 my_region = 'na1'
@@ -99,6 +104,7 @@ def main():
         df_revised = pd.concat([win_df,loss_df])
         return df_revised
 
+    #take df and calcualte win rate column, return new df-df with re-named columns
     def get_win_loss_ratio_for_write_df(df):
         #create win / loss ratio
         df['win_loss_ratio'] = df['Wins'] / (df['Wins'] + df['Losses'])
@@ -106,79 +112,123 @@ def main():
         df.columns = ['Queue Type','Wins','Losses','Win Rate']
         return df
     
-    
-    #USER INTERACTION HERE
-    st.markdown("<h5 style='text-align: center'>@hancockdevelop</h1>", unsafe_allow_html=True)
-    st.markdown("<h1 style='text-align: center'>Search for summoner name: </h1>", unsafe_allow_html=True)
+    def plot_top_15_pie():
+        #get last 100 champs played
+        count = get_last_100_champs_played()
+        #top 10 for better pieplot formating
+        count = count.head(15)
+        labels = count.keys()
+        #set seaborn color pallette
+        colors = sns.color_palette("tab10")
+        #set figsize
+        pie,ax = plt.subplots(figsize=[4,4])
+        #pie chart labels white
+        mpl.rcParams['text.color'] = 'w'
+        #create pie
+        plt.pie(x=count,labels=labels,textprops={'fontsize':10  },colors=colors)
+        #set pie title
+        ax.set_title(my_name + ' - Top 15 Champions Played - Season 13' + '\n',fontsize=16,color='white')
+        #set pie background to same hex as main background
+        pie.set_facecolor('#30394b')
+        #plot pie
+        st.pyplot(pie)
+        #create count dataframe for display
+        count = count.reset_index(name='counts')
+        #rename count datafram columns
+        count.columns = ['Champion Name','Number of Games']
+        #set index to champion name
+        count.set_index('Champion Name', inplace=True)
+        #return count as dataframe-count
+        return count
+   
+    def plot_wins_losses(df):
+        #begin graph dev
+        #revise df for graphing
+        df_revised = prep_df_for_barchart()
+        #set plotsize
+        fig, ax = plt.subplots(figsize=(10,5))            
+        #set sns font_scale
+        sns.set(font_scale=2)
+        #create
+        ax = sns.barplot(y="queue_type",x="Value",hue="Category",data=df_revised,orient="h",alpha=1,palette=sns.color_palette('tab10', n_colors=5))
+        #dont show x label
+        ax.set_xlabel('')
+        #dont show y label
+        ax.set_ylabel('')
+        #set barplot title and title params here
+        ax.set_title(my_name + ' - Ranked Wins / Losses - Season 13'+'\n',fontsize=48,color='white')
+        #custom ticks and scaler for plot
+        ax.xaxis.set_major_locator(ticker.MultipleLocator(20))
+        ax.xaxis.set_major_formatter(ticker.ScalarFormatter())
+        #change tick params
+        ax.tick_params(axis='y', which='major', labelsize=28, labelcolor='white')
+        ax.tick_params(axis='x', which='major', labelsize=17,labelcolor='white')
+        #turn off grid
+        ax.grid(False)
+        #remove legend background
+        ax.legend(frameon=False,labelcolor='white')
+        #background color for chart
+        ax.set_facecolor('#30394b')
+        fig.set_facecolor('#30394b')
+        #plot
+        st.pyplot(fig)
+        #format for table write
+        df['w_l'] = df['Wins'] / (df['Losses'] + df['Wins'])
+        df.columns = ['Queue Type','Wins','Losses','Win Rate']
+        df.set_index('Queue Type', inplace=True)
+        #write df
+        df = df.style.set_properties(**{'color': 'white',
+                        'border-color': 'white',})
+        return df
+
+    #PAGE IS PRITED HERE
+    logo= Image.open('logo.png')
+    st.image(logo)
+    st.markdown("<h1 style='text-align: center'>season13.me</h1>", unsafe_allow_html=True)
+    st.title('\n')
+    st.title('\n')
+    st.title('\n')
+    st.title('\n')
+    st.title('\n')
+    st.title('\n')
+    st.markdown("<h3 style='text-align: center'>Search for summoner</h3>", unsafe_allow_html=True)
     my_name = st.text_input('','Scarra')
     #when submit button is pressed
     if st.button('Submit'):
         with st.spinner("Search ongoing"):
-            #get info
-            df = get_info()
-            #title for padding
-            st.title('\n')
-            st.title('\n')
-            st.title('\n')
-            st.title('\n')
-            #begin graph dev
-            #revise df for graphing
-            df_revised = prep_df_for_barchart()
-            #set plotsize
-            fig, ax = plt.subplots(figsize=(10,5))
-            #set sns font_scale
-            sns.set(font_scale=2)
-            sns.set_style("white")
-            #create
-            ax = sns.barplot(y="queue_type",x="Value",hue="Category",data=df_revised,orient="h")
-            ax.set_xlabel('')
-            ax.set_ylabel('')
-            ax.set_title(my_name + ' - Ranked Wins / Losses - Season 13'+'\n',fontsize=38,color='white')
-            ax.xaxis.set_major_locator(ticker.MultipleLocator(20))
-            ax.xaxis.set_major_formatter(ticker.ScalarFormatter())
-            #change tick params
-            ax.tick_params(axis='y', which='major', labelsize=28, labelcolor='white')
-            ax.tick_params(axis='x', which='major', labelsize=17,labelcolor='white')
-            ax.grid(False)
-            #remove legend background
-            ax.legend(frameon=False,labelcolor='white')
-            #background color for chart
-            ax.set_facecolor('#30394b')
-            fig.set_facecolor('#30394b')
-            #plot
-            st.pyplot(fig)
-            #format for table write
-            df['w_l'] = df['Wins'] / (df['Losses'] + df['Wins'])
-            df.columns = ['Queue Type','Wins','Losses','Win Rate']
-            df.set_index('Queue Type', inplace=True)
-            #write df
-            df = df.style.set_properties(**{'color': 'white',
-                           'border-color': 'white',})
-            st.table(df)
-            #st.table(df)
-            #done creation
-            st.title('\n')
-            st.title('\n')
-            #pie plot
-            #get last 100 champs played
-            count = get_last_100_champs_played()
-            #top 10 for better pieplot formating
-            count = count.head(15)
-            labels = count.keys()
-            #set pieplot params
-            colors = sns.color_palette("tab10")
-            pie,ax = plt.subplots(figsize=[4,4])
-            mpl.rcParams['text.color'] = 'w'
-            plt.pie(x=count,labels=labels,textprops={'fontsize':10  },colors=colors)
-            ax.set_title(my_name + ' - Top 15 Champions Played - Season 13' + '\n',fontsize=12,color='white')
-            pie.set_facecolor('#30394b')
-            st.pyplot(pie)
-            count = count.reset_index(name='counts')
-            count.columns = ['Champion Name','Number of Games']
-            count.set_index('Champion Name', inplace=True)
-            count = count.style.set_properties(**{'color': 'white',
-                           'border-color': 'white',})
-
-            st.table(count)
-
+            try:
+                st.title('\n')
+                st.title('\n')
+                st.markdown("<hr></hr>",unsafe_allow_html=True)
+                st.title('\n')
+                #get info
+                df = get_info()
+                #title for padding
+                st.title('\n')
+                st.title('\n')
+                #pie plot
+                count = plot_top_15_pie()
+                #table header
+                st.header('Champion by times played')
+                #table
+                st.write(count)
+                #formating
+                st.title('\n')
+                st.markdown("<hr></hr>",unsafe_allow_html=True)
+                st.title('\n')
+                #win_loss_plot
+                win_loss = plot_wins_losses(df)
+                st.title('\n')
+                st.header('Wins and losses with win rate')
+                st.write(win_loss)
+                #footer
+            except:
+                st.title('Try another name!')
+                st.subheader('Player name must be in na1 region')
+                st.subheader('Make sure playername is spelled correctly')
+    st.title('\n')
+    st.title('\n')
+    st.title('\n')
+    st.markdown("<h5 style='text-align: center'>@hancockdevelop</h1>", unsafe_allow_html=True)
+                
 main()
